@@ -1,0 +1,257 @@
+# SELECTORS: https://docs.oracle.com/javaee/1.4/api/javax/jms/Message.html
+# Message Attributes Accessed as Properties: https://activemq.apache.org/activemq-message-properties
+# ActiveMQ MBeans Reference https://activemq.apache.org/jmx.html#activemq-mbeans-reference
+# JMX MBeans for the broker and its core connectors - http://activemq.apache.org/maven/apidocs/org/apache/activemq/broker/jmx/package-summary.html
+
+### Common MBEAN Parameters
+@MBEAN_TYPE_BROKER = Broker
+@MBEAN_DESTINATION_TYPE_TOPIC = Topic
+@MBEAN_DESTINATION_TYPE_QUEUE = Queue
+@mbeanType = {{MBEAN_TYPE_BROKER}}
+@mbeanBrokerName = localhost
+
+### Common Request Parameters
+@activeMqHost = localhost
+@activeMqPort = 8161
+@activeMqUser = admin
+@activeMqPassword = admin
+@activeMqAuthorizationHeaderValue = {{activeMqUser}}:{{activeMqPassword}}
+@jolokiaBaseUri = api/jolokia
+@contentType = application/json 
+
+
+
+// GET requests
+// <base-url>/<type>/<arg1>/<arg2>/..../
+
+GET http://{{activeMqHost}}:{{activeMqPort}}/{{jolokiaBaseUri}}/version HTTP/1.1
+Authorization: Basic {{activeMqAuthorizationHeaderValue}}
+Content-Type: {{contentType}}
+
+###
+POST http://{{activeMqHost}}:{{activeMqPort}}/{{jolokiaBaseUri}} HTTP/1.1
+Authorization: Basic {{activeMqAuthorizationHeaderValue}}
+Content-Type: {{contentType}}
+
+{
+    "type": "version"
+}
+
+
+###
+GET http://{{activeMqHost}}:{{activeMqPort}}/{{jolokiaBaseUri}}/list HTTP/1.1
+Authorization: Basic {{activeMqAuthorizationHeaderValue}}
+Content-Type: {{contentType}}
+
+
+# EXEC
+
+@JMSCorrelationID = 59eeacbb-2929-4bf7-8e05-9b651b688b6f
+@JMSType = TheType
+@queueName = queue_0_64942ad7-3c1c-437a-a8c2-32cce2a36252
+
+@selector = JMSCorrelationID='{{JMSCorrelationID}}'
+
+###
+### Interface BrokerViewMBean - http://activemq.apache.org/maven/apidocs/org/apache/activemq/broker/jmx/BrokerViewMBean.html
+###
+
+@QBrokerViewMBean_removeQueue_mbeanDestinationName = {{queueName}}
+@QBrokerViewMBean_removeQueue_mbean = org.apache.activemq:brokerName={{mbeanBrokerName}},type={{mbeanType}}
+
+###
+# @name BrokerViewMBean_removeQueue
+GET http://{{activeMqHost}}:{{activeMqPort}}/{{jolokiaBaseUri}}/exec/{{QBrokerViewMBean_removeQueue_mbean}}/removeQueue(java.lang.String)/{{QBrokerViewMBean_removeQueue_mbeanDestinationName}} HTTP/1.1
+Authorization: Basic {{activeMqAuthorizationHeaderValue}}
+Content-Type: {{contentType}}
+
+
+###
+# @name BrokerViewMBean_removeQueue
+POST http://{{activeMqHost}}:{{activeMqPort}}/{{jolokiaBaseUri}} HTTP/1.1
+Authorization: Basic {{activeMqAuthorizationHeaderValue}}
+Content-Type: {{contentType}}
+
+{
+    "mbean": "{{QBrokerViewMBean_removeQueue_mbean}}",
+    "arguments": [
+      "{{QBrokerViewMBean_removeQueue_mbeanDestinationName}}"
+    ],
+    "type": "exec",
+    "operation": "removeQueue(java.lang.String)"
+}
+
+###
+@BrokerViewMBean_addQueue_mbeanDestinationName = {{queueName}}
+@BrokerViewMBean_addQueue_mbean = org.apache.activemq:brokerName={{mbeanBrokerName}},type={{mbeanType}}
+
+###
+# @name BrokerViewMBean_addQueue
+POST http://{{activeMqHost}}:{{activeMqPort}}/{{jolokiaBaseUri}} HTTP/1.1
+Authorization: Basic {{activeMqAuthorizationHeaderValue}}
+Content-Type: {{contentType}}
+
+{
+    "mbean": "{{BrokerViewMBean_addQueue_mbean}}",
+    "arguments": [
+      "{{BrokerViewMBean_addQueue_mbeanDestinationName}}"
+    ],
+    "type": "exec",
+    "operation": "addQueue(java.lang.String)"
+}
+
+
+###
+### Interface QueueViewMBean - http://activemq.apache.org/maven/apidocs/org/apache/activemq/broker/jmx/QueueViewMBean.html
+###
+
+#@QueueViewMBean_purge_mbeanDestinationType = {{MBEAN_DESTINATION_TYPE_TOPIC}}
+@QueueViewMBean_purge_mbeanDestinationType = {{MBEAN_DESTINATION_TYPE_QUEUE}}
+#QueueViewMBean_purge_@mbeanDestinationName = ActiveMQ.Advisory.Producer.Queue.{{queueName}}
+@QueueViewMBean_purge_mbeanDestinationName = {{queueName}}
+@QueueViewMBean_purge_mbean = org.apache.activemq:brokerName={{mbeanBrokerName}},destinationName={{QueueViewMBean_purge_mbeanDestinationName}},destinationType={{QueueViewMBean_purge_mbeanDestinationType}},type={{mbeanType}}
+
+# @name QueueViewMBean_purge
+GET http://{{activeMqHost}}:{{activeMqPort}}/{{jolokiaBaseUri}}/exec/{{QueueViewMBean_purge_mbean}}/purge() HTTP/1.1
+Authorization: Basic {{activeMqAuthorizationHeaderValue}}
+Content-Type: {{contentType}}
+
+###
+# @name QueueViewMBean_purge
+POST http://{{activeMqHost}}:{{activeMqPort}}/{{jolokiaBaseUri}} HTTP/1.1
+Authorization: Basic {{activeMqAuthorizationHeaderValue}}
+Content-Type: {{contentType}}
+
+{
+    "mbean": "{{QueueViewMBean_purge_mbean}}",
+    "type": "exec",
+    "operation": "purge()"
+}
+
+
+###
+#@QueueViewMBean_removeMatchingMessages_mbeanDestinationType = {{MBEAN_DESTINATION_TYPE_TOPIC}}
+@QueueViewMBean_removeMatchingMessages_mbeanDestinationType = {{MBEAN_DESTINATION_TYPE_QUEUE}}
+#QueueViewMBean_removeMatchingMessages_@mbeanDestinationName = ActiveMQ.Advisory.Producer.Queue.{{queueName}}
+@QueueViewMBean_removeMatchingMessages_mbeanDestinationName = {{queueName}}
+@QueueViewMBean_removeMatchingMessages_mbean = org.apache.activemq:brokerName={{mbeanBrokerName}},destinationName={{QueueViewMBean_removeMatchingMessages_mbeanDestinationName}},destinationType={{QueueViewMBean_removeMatchingMessages_mbeanDestinationType}},type={{mbeanType}}
+
+@QueueViewMBean_removeMatchingMessages_selector = JMSCorrelationID='{{JMSCorrelationID}}' AND JMSType='{{JMSType}}'
+
+# @name removeMatchingMessages
+GET http://{{activeMqHost}}:{{activeMqPort}}/{{jolokiaBaseUri}}/exec/{{QueueViewMBean_removeMatchingMessages_mbean}}/removeMatchingMessages(java.lang.String)/{{selector}} HTTP/1.1
+Authorization: Basic {{activeMqAuthorizationHeaderValue}}
+Content-Type: {{contentType}}
+
+
+### removeMatchingMessages
+POST http://{{activeMqHost}}:{{activeMqPort}}/{{jolokiaBaseUri}} HTTP/1.1
+Authorization: Basic {{activeMqAuthorizationHeaderValue}}
+Content-Type: {{contentType}}
+
+{
+    "mbean": "{{QueueViewMBean_removeMatchingMessages_mbean}}",
+    "arguments": [
+      "{{QueueViewMBean_removeMatchingMessages_selector}}"
+    ],
+    "type": "exec",
+    "operation": "removeMatchingMessages(java.lang.String)"
+}
+
+
+###
+### Interface DestinationViewMBean http://activemq.apache.org/maven/apidocs/org/apache/activemq/broker/jmx/DestinationViewMBean.html
+###
+
+#@DestinationViewMBean_browseMessages_mbeanDestinationType = {{MBEAN_DESTINATION_TYPE_TOPIC}}
+@DestinationViewMBean_browseMessages_mbeanDestinationType = {{MBEAN_DESTINATION_TYPE_QUEUE}}
+#DestinationViewMBean_browseMessages_@mbeanDestinationName = ActiveMQ.Advisory.Producer.Queue.{{queueName}}
+@DestinationViewMBean_browseMessages_mbeanDestinationName = {{queueName}}
+@DestinationViewMBean_browseMessages_mbean = org.apache.activemq:brokerName={{mbeanBrokerName}},destinationName={{DestinationViewMBean_browseMessages_mbeanDestinationName}},destinationType={{DestinationViewMBean_browseMessages_mbeanDestinationType}},type={{mbeanType}}
+
+#@DestinationViewMBean_browseMessages_selector = JMSCorrelationID IS NOT NULL
+@DestinationViewMBean_browseMessages_selector = JMSCorrelationID='{{JMSCorrelationID}}' AND JMSType='{{JMSType}}'
+
+###
+# @name DestinationViewMBean_sendTextMessage
+POST http://{{activeMqHost}}:{{activeMqPort}}/{{jolokiaBaseUri}} HTTP/1.1
+Authorization: Basic {{activeMqAuthorizationHeaderValue}}
+Content-Type: {{contentType}}
+
+[
+  {
+    "mbean": "{{DestinationViewMBean_browseMessages_mbean}}",
+    "arguments": [
+      "BULK CREATE: #1
+      The message body of this message is like this!!!!!"
+    ],
+    "type": "exec",
+    "operation": "sendTextMessage(java.lang.String)"
+  }, {
+    "mbean": "{{DestinationViewMBean_browseMessages_mbean}}",
+    "arguments": [
+      "BULK CREATE: #2
+      The message body of this message is like this!!!!!"
+    ],
+    "type": "exec",
+    "operation": "sendTextMessage(java.lang.String)"
+  }, {
+    "mbean": "{{DestinationViewMBean_browseMessages_mbean}}",
+    "arguments": [
+      "BULK CREATE: #3
+      The message body of this message is like this!!!!!"
+    ],
+    "type": "exec",
+    "operation": "sendTextMessage(java.lang.String)"
+  }
+]
+
+
+### 
+#@DestinationViewMBean_browseMessages_mbeanDestinationType = {{MBEAN_DESTINATION_TYPE_TOPIC}}
+@DestinationViewMBean_browseMessages_mbeanDestinationType = {{MBEAN_DESTINATION_TYPE_QUEUE}}
+#DestinationViewMBean_browseMessages_@mbeanDestinationName = ActiveMQ.Advisory.Producer.Queue.{{queueName}}
+@DestinationViewMBean_browseMessages_mbeanDestinationName = {{queueName}}
+@DestinationViewMBean_browseMessages_mbean = org.apache.activemq:brokerName={{mbeanBrokerName}},destinationName={{DestinationViewMBean_browseMessages_mbeanDestinationName}},destinationType={{DestinationViewMBean_browseMessages_mbeanDestinationType}},type={{mbeanType}}
+
+#@DestinationViewMBean_browseMessages_selector = JMSCorrelationID IS NOT NULL
+
+@DestinationViewMBean_browseMessages_selector = JMSCorrelationID='{{JMSCorrelationID}}' AND JMSType='{{JMSType}}'
+
+###
+# @name DestinationViewMBean_browseMessages
+POST http://{{activeMqHost}}:{{activeMqPort}}/{{jolokiaBaseUri}} HTTP/1.1
+Authorization: Basic {{activeMqAuthorizationHeaderValue}}
+Content-Type: {{contentType}}
+
+{
+    "mbean": "{{DestinationViewMBean_browseMessages_mbean}}",
+    "arguments": [
+      "{{DestinationViewMBean_browseMessages_selector}}"
+    ],
+    "type": "exec",
+    "operation": "browseMessages(java.lang.String)"
+}
+
+###
+@DestinationViewMBean_browse_mbeanDestinationType = {{MBEAN_DESTINATION_TYPE_TOPIC}}
+@DestinationViewMBean_browse_mbeanDestinationName = SOME_TOPIC_NAME
+@DestinationViewMBean_browse_mbean = org.apache.activemq:brokerName={{mbeanBrokerName}},destinationName={{DestinationViewMBean_browse_mbeanDestinationName}},destinationType={{DestinationViewMBean_browse_mbeanDestinationType}},type={{mbeanType}}
+
+@DestinationViewMBean_browse_selector = JMSType LIKE 'SomeValue%'
+
+###
+# @name DestinationViewMBean_browse
+POST http://{{activeMqHost}}:{{activeMqPort}}/{{jolokiaBaseUri}} HTTP/1.1
+Authorization: Basic {{activeMqAuthorizationHeaderValue}}
+Content-Type: {{contentType}}
+
+{
+    "mbean": "{{DestinationViewMBean_browse_mbean}}",
+    "arguments": [
+      "{{DestinationViewMBean_browse_selector}}"
+    ],
+    "type": "exec",
+    "operation": "browse(java.lang.String)"
+}
+
