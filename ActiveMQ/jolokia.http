@@ -56,8 +56,8 @@ Content-Type: {{contentType}}
 ### Interface BrokerViewMBean - http://activemq.apache.org/maven/apidocs/org/apache/activemq/broker/jmx/BrokerViewMBean.html
 ###
 
+@BrokerViewMBean_mbean = org.apache.activemq:brokerName={{mbeanBrokerName}},type={{mbeanType}}
 @QBrokerViewMBean_removeQueue_mbeanDestinationName = {{queueName}}
-@QBrokerViewMBean_removeQueue_mbean = org.apache.activemq:brokerName={{mbeanBrokerName}},type={{mbeanType}}
 
 ###
 # @name BrokerViewMBean_removeQueue
@@ -73,7 +73,7 @@ Authorization: Basic {{activeMqAuthorizationHeaderValue}}
 Content-Type: {{contentType}}
 
 {
-    "mbean": "{{QBrokerViewMBean_removeQueue_mbean}}",
+    "mbean": "{{BrokerViewMBean_mbean}}",
     "arguments": [
       "{{QBrokerViewMBean_removeQueue_mbeanDestinationName}}"
     ],
@@ -83,7 +83,6 @@ Content-Type: {{contentType}}
 
 ###
 @BrokerViewMBean_addQueue_mbeanDestinationName = {{queueName}}
-@BrokerViewMBean_addQueue_mbean = org.apache.activemq:brokerName={{mbeanBrokerName}},type={{mbeanType}}
 
 ###
 # @name BrokerViewMBean_addQueue
@@ -92,12 +91,95 @@ Authorization: Basic {{activeMqAuthorizationHeaderValue}}
 Content-Type: {{contentType}}
 
 {
-    "mbean": "{{BrokerViewMBean_addQueue_mbean}}",
+    "mbean": "{{BrokerViewMBean_mbean}}",
     "arguments": [
       "{{BrokerViewMBean_addQueue_mbeanDestinationName}}"
     ],
     "type": "exec",
     "operation": "addQueue(java.lang.String)"
+}
+
+
+###
+# https://github.com/apache/activemq/blob/master/activemq-broker/src/main/java/org/apache/activemq/broker/jmx/DestinationsViewFilter.java
+#
+# @name BrokerViewMBean_queryQueues
+POST http://{{activeMqHost}}:{{activeMqPort}}/{{jolokiaBaseUri}} HTTP/1.1
+Authorization: Basic {{activeMqAuthorizationHeaderValue}}
+Content-Type: {{contentType}}
+
+{
+    "mbean": "{{BrokerViewMBean_mbean}}",
+    "arguments": [
+      "{\"name\":\"PART_OR_FULL_QUEUE_NAME\",\"filter\":\"empty\",\"sortColumn\":\"queueSize\",\"sortOrder\":\"desc\"}",
+      1,
+      1000
+    ],
+    "type": "exec",
+    "operation": "queryQueues(java.lang.String,int,int)"
+}
+
+
+###
+# https://github.com/apache/activemq/blob/master/activemq-broker/src/main/java/org/apache/activemq/broker/jmx/DestinationsViewFilter.java
+#
+# @name BrokerViewMBean_queryTopics
+POST http://{{activeMqHost}}:{{activeMqPort}}/{{jolokiaBaseUri}} HTTP/1.1
+Authorization: Basic {{activeMqAuthorizationHeaderValue}}
+Content-Type: {{contentType}}
+
+{
+    "mbean": "{{BrokerViewMBean_mbean}}",
+    "arguments": [
+      "{\"name\":\"PART_OR_FULL_TOPIC_NAME\",\"filter\":\"empty\",\"sortColumn\":\"queueSize\",\"sortOrder\":\"desc\"}",
+      1,
+      1000
+    ],
+    "type": "exec",
+    "operation": "queryTopics(java.lang.String,int,int)"
+}
+
+###
+# Retrieve all attributes
+#
+# @name BrokerViewMBean
+POST http://{{activeMqHost}}:{{activeMqPort}}/{{jolokiaBaseUri}} HTTP/1.1
+Authorization: Basic {{activeMqAuthorizationHeaderValue}}
+Content-Type: {{contentType}}
+
+{
+    "mbean": "{{BrokerViewMBean_mbean}}",
+    "type": "read"
+}
+
+
+###
+# Retrieve all Queues
+#
+# @name BrokerViewMBean_getQueues
+POST http://{{activeMqHost}}:{{activeMqPort}}/{{jolokiaBaseUri}} HTTP/1.1
+Authorization: Basic {{activeMqAuthorizationHeaderValue}}
+Content-Type: {{contentType}}
+
+{
+    "mbean": "{{BrokerViewMBean_mbean}}",
+    "type": "read",
+    "attribute": "Queues"
+}
+
+
+###
+# Retrieve all Topics
+#
+# @name BrokerViewMBean_getQueues
+POST http://{{activeMqHost}}:{{activeMqPort}}/{{jolokiaBaseUri}} HTTP/1.1
+Authorization: Basic {{activeMqAuthorizationHeaderValue}}
+Content-Type: {{contentType}}
+
+{
+    "mbean": "{{BrokerViewMBean_mbean}}",
+    "type": "read",
+    "attribute": "Topics"
 }
 
 
