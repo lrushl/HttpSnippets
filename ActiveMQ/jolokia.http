@@ -108,16 +108,32 @@ POST http://{{activeMqHost}}:{{activeMqPort}}/{{jolokiaBaseUri}} HTTP/1.1
 Authorization: Basic {{activeMqAuthorizationHeaderValue}}
 Content-Type: {{contentType}}
 
-{
+[
+  {
+      "mbean": "{{BrokerViewMBean_mbean}}",
+      "arguments": [
+        "{\"filter\":\"\"}",
+        1,
+        1000
+      ],
+      "type": "exec",
+      "operation": "queryQueues(java.lang.String,int,int)"
+  },
+  {
     "mbean": "{{BrokerViewMBean_mbean}}",
     "arguments": [
-      "{\"name\":\"PART_OR_FULL_QUEUE_NAME\",\"filter\":\"empty\",\"sortColumn\":\"queueSize\",\"sortOrder\":\"desc\"}",
+      "{\"filter\":\"*\",\"sortColumn\":\"queueSize\",\"sortOrder\":\"desc\"}",
       1,
       1000
     ],
     "type": "exec",
-    "operation": "queryQueues(java.lang.String,int,int)"
-}
+    "operation": "queryTopics(java.lang.String,int,int)"
+  },
+  {
+      "mbean": "{{BrokerViewMBean_mbean}}",
+      "type": "read"
+  }
+]
 
 
 ###
@@ -171,7 +187,7 @@ Content-Type: {{contentType}}
 ###
 # Retrieve all Topics
 #
-# @name BrokerViewMBean_getQueues
+# @name BrokerViewMBean_getTopics
 POST http://{{activeMqHost}}:{{activeMqPort}}/{{jolokiaBaseUri}} HTTP/1.1
 Authorization: Basic {{activeMqAuthorizationHeaderValue}}
 Content-Type: {{contentType}}
@@ -180,6 +196,20 @@ Content-Type: {{contentType}}
     "mbean": "{{BrokerViewMBean_mbean}}",
     "type": "read",
     "attribute": "Topics"
+}
+
+
+###
+# Retrieve all NetworkDestinationViewMBean attributes
+#
+# @name NetworkDestinationViewMBean
+POST http://{{activeMqHost}}:{{activeMqPort}}/{{jolokiaBaseUri}} HTTP/1.1
+Authorization: Basic {{activeMqAuthorizationHeaderValue}}
+Content-Type: {{contentType}}
+
+{
+    "mbean": "{{BrokerViewMBean_mbean}}",
+    "type": "read"
 }
 
 
@@ -245,14 +275,15 @@ Content-Type: {{contentType}}
 ### Interface DestinationViewMBean http://activemq.apache.org/maven/apidocs/org/apache/activemq/broker/jmx/DestinationViewMBean.html
 ###
 
-#@DestinationViewMBean_browseMessages_mbeanDestinationType = {{MBEAN_DESTINATION_TYPE_TOPIC}}
-@DestinationViewMBean_browseMessages_mbeanDestinationType = {{MBEAN_DESTINATION_TYPE_QUEUE}}
-#DestinationViewMBean_browseMessages_@mbeanDestinationName = ActiveMQ.Advisory.Producer.Queue.{{queueName}}
-@DestinationViewMBean_browseMessages_mbeanDestinationName = {{queueName}}
-@DestinationViewMBean_browseMessages_mbean = org.apache.activemq:brokerName={{mbeanBrokerName}},destinationName={{DestinationViewMBean_browseMessages_mbeanDestinationName}},destinationType={{DestinationViewMBean_browseMessages_mbeanDestinationType}},type={{mbeanType}}
+#@DestinationViewMBean_sendTextMessage_mbeanDestinationType = {{MBEAN_DESTINATION_TYPE_TOPIC}}
+@DestinationViewMBean_sendTextMessage_mbeanDestinationType = {{MBEAN_DESTINATION_TYPE_QUEUE}}
+#@DestinationViewMBean_sendTextMessage_@mbeanDestinationName = ActiveMQ.Advisory.Producer.Queue.{{queueName}}
+#@DestinationViewMBean_sendTextMessage_mbeanDestinationName = {{queueName}}
+@DestinationViewMBean_sendTextMessage_mbeanDestinationName = RUSH.Queue
+@DestinationViewMBean_sendTextMessage_mbean = org.apache.activemq:brokerName={{mbeanBrokerName}},destinationName={{DestinationViewMBean_sendTextMessage_mbeanDestinationName}},destinationType={{DestinationViewMBean_sendTextMessage_mbeanDestinationType}},type={{mbeanType}}
 
-#@DestinationViewMBean_browseMessages_selector = JMSCorrelationID IS NOT NULL
-@DestinationViewMBean_browseMessages_selector = JMSCorrelationID='{{JMSCorrelationID}}' AND JMSType='{{JMSType}}'
+#@DestinationViewMBean_sendTextMessage_selector = JMSCorrelationID IS NOT NULL
+# @DestinationViewMBean_sendTextMessage_selector = JMSCorrelationID='{{JMSCorrelationID}}' AND JMSType='{{JMSType}}'
 
 ###
 # @name DestinationViewMBean_sendTextMessage
@@ -262,7 +293,7 @@ Content-Type: {{contentType}}
 
 [
   {
-    "mbean": "{{DestinationViewMBean_browseMessages_mbean}}",
+    "mbean": "{{DestinationViewMBean_sendTextMessage_mbean}}",
     "arguments": [
       "BULK CREATE: #1
       The message body of this message is like this!!!!!"
@@ -270,7 +301,7 @@ Content-Type: {{contentType}}
     "type": "exec",
     "operation": "sendTextMessage(java.lang.String)"
   }, {
-    "mbean": "{{DestinationViewMBean_browseMessages_mbean}}",
+    "mbean": "{{DestinationViewMBean_sendTextMessage_mbean}}",
     "arguments": [
       "BULK CREATE: #2
       The message body of this message is like this!!!!!"
@@ -278,13 +309,93 @@ Content-Type: {{contentType}}
     "type": "exec",
     "operation": "sendTextMessage(java.lang.String)"
   }, {
-    "mbean": "{{DestinationViewMBean_browseMessages_mbean}}",
+    "mbean": "{{DestinationViewMBean_sendTextMessage_mbean}}",
     "arguments": [
       "BULK CREATE: #3
       The message body of this message is like this!!!!!"
     ],
     "type": "exec",
     "operation": "sendTextMessage(java.lang.String)"
+  }
+]
+
+
+###
+@DestinationViewMBean_sendTextMessageWithProperties_mbeanDestinationType = {{MBEAN_DESTINATION_TYPE_TOPIC}}
+#@DestinationViewMBean_sendTextMessageWithProperties_mbeanDestinationType = {{MBEAN_DESTINATION_TYPE_QUEUE}}
+# @DestinationViewMBean_sendTextMessageWithProperties_mbeanDestinationName = Inbound
+# @DestinationViewMBean_sendTextMessageWithProperties_mbeanDestinationName = Core.MasterData.PortCodes
+@DestinationViewMBean_sendTextMessageWithProperties_mbeanDestinationName = Core.MasterData.HazardClassifications
+# @DestinationViewMBean_sendTextMessageWithProperties_mbeanDestinationName = Core.MasterData.ShippingLines
+#@DestinationViewMBean_sendTextMessageWithProperties_mbeanDestinationName = {{queueName}}
+@DestinationViewMBean_sendTextMessageWithProperties_mbean = org.apache.activemq:brokerName={{mbeanBrokerName}},destinationName={{DestinationViewMBean_sendTextMessageWithProperties_mbeanDestinationName}},destinationType={{DestinationViewMBean_sendTextMessageWithProperties_mbeanDestinationType}},type={{mbeanType}}
+# @DestinationViewMBean_sendTextMessageWithProperties_JMSType = LoadListAddRequest
+# @DestinationViewMBean_sendTextMessageWithProperties_JMSType = PortCodes
+@DestinationViewMBean_sendTextMessageWithProperties_JMSType = HazardClassifications
+# @DestinationViewMBean_sendTextMessageWithProperties_JMSType = ShippingLines
+@DELIVERYMODE_NON_PERSISTENT = 1
+@DELIVERYMODE_PERSISTENT = 2
+
+# @DestinationViewMBean_sendTextMessageWithProperties_Body = {"portCodesList":[{"id":"B7D5B24C-9515-417D-A35C-58610EB2CB91","portCode":"MT","portName":"MT_Name"}]}
+
+###
+# @name DestinationViewMBean_sendTextMessageWithProperties
+POST http://{{activeMqHost}}:{{activeMqPort}}/{{jolokiaBaseUri}} HTTP/1.1
+Authorization: Basic {{activeMqAuthorizationHeaderValue}}
+Content-Type: {{contentType}}
+
+[
+  {
+    "mbean": "{{DestinationViewMBean_sendTextMessageWithProperties_mbean}}",
+    "arguments": [
+      {"JMSType":"{{DestinationViewMBean_sendTextMessageWithProperties_JMSType}}","JMSDeliveryMode":"{{DELIVERYMODE_PERSISTENT}}","JMSCorrelationID":"{{$guid}}"},
+      //{"portCodesList":[{"id":"B7D5B24C-9515-427D-A35C-58610E82CB91","portCode":"MT","portName":"MT_Name"}]}
+    //  {
+    //    "shippingLinesList": [
+    //        {
+    //            "id": "3166DD4C-DE50-47A6-B03F-E91A421133E9",
+    //            "code": "Line_A",
+    //            "name": "Line A"
+    //        },
+    //        {
+    //            "id": "36417E3D-2910-4F7C-8C73-03D89912C41B",
+    //            "code": "Line_B",
+    //            "name": "Line B"
+    //        },
+    //        {
+    //            "id": "9FB4804A-0D04-4293-88C8-9C563B859278",
+    //            "code": "Line_C",
+    //            "name": "Line C"
+    //        }
+    //    ]
+    // }
+    {
+        "hazardClassificationsList": [
+            {
+                "id": "13FCCFCD-4E21-4EDA-8366-6A5D11ADD86C",
+                "classification": "1",
+                "description": "Explosives"
+            },
+            {
+                "id": "E1742BC2-CD01-409D-81CC-29690D6EC50F",
+                "classification": "1.1",
+                "description": "Objects that have a mass explosion hazard."
+            },
+            {
+                "id": "8B1DDCDD-4CA4-4C9D-906F-C9C493E74979",
+                "classification": "1.2",
+                "description": "Objects that have a projection hazard but not a mass explosion hazard."
+            },
+            {
+                "id": "F4CBBB3B-AA44-485B-803E-CCFF80CCCD1A",
+                "classification": "1.3",
+                "description": "Objects that have a fire hazard and a minor blast hazard."
+            }
+        ]
+    }
+    ],
+    "type": "exec",
+    "operation": "sendTextMessage(java.util.Map,java.lang.String)"
   }
 ]
 
